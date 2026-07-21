@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>日本动画IP热度的多维归因实证研究</title>
+
+    <style>
+        /* ============================================================
+                   全局重置 & 基础样式
+                   ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            font-family: 'SimSun', '宋体', serif;
+            font-style: normal;
+            background-color: #f5f6f8;
+            color: #2c3e50;
+            overflow: hidden;
+        }
+
+        /* ============================================================
+                   整体布局：flex 横向
+                   ============================================================ */
+        .app {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ============================================================
+                   左侧导航栏
+                   ============================================================ */
+        .sidebar {
+            width: 220px;
+            min-width: 220px;
+            height: 100vh;
+            background: #1a2634;
+            color: #e8edf2;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 0 30px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.12);
+            z-index: 100;
+        }
+
+        .sidebar .logo-area {
+            padding: 0 24px 28px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .sidebar .logo-area h2 {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #ffffff;
+            font-style: normal;
+            line-height: 1.5;
+        }
+
+        .sidebar .logo-area p {
+            font-size: 12px;
+            color: #9aa8b8;
+            margin-top: 6px;
+            font-style: normal;
+        }
+
+        .sidebar nav {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 0 12px;
+            flex: 1;
+        }
+
+        .sidebar nav .nav-btn {
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-family: 'SimSun', '宋体', serif;
+            font-style: normal;
+            font-size: 15px;
+            font-weight: 400;
+            color: #b8c5d2;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.5px;
+            line-height: 1.4;
+        }
+
+        .sidebar nav .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
+        }
+
+        .sidebar nav .nav-btn.active {
+            background: rgba(255, 255, 255, 0.10);
+            color: #ffffff;
+            font-weight: 600;
+            border-left: 3px solid #7aabcf;
+        }
+
+        .sidebar .footer-info {
+            padding: 20px 24px 0;
+            font-size: 11px;
+            color: #6b7a8a;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin-top: 12px;
+            font-style: normal;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* ============================================================
+                   右侧主内容区
+                   ============================================================ */
+        .main {
+            flex: 1;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            background: #f5f6f8;
+        }
+
+        /* ----- 封面页（全屏） ----- */
+        .cover-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+            z-index: 20;
+            padding: 60px 80px;
+            text-align: center;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .cover-page.hidden {
+            opacity: 0;
+            transform: scale(0.97);
+            pointer-events: none;
+        }
+
+        .cover-page h1 {
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: #1a2634;
+            margin-bottom: 14px;
+            font-style: normal;
+        }
+
+        .cover-page .subtitle {
+            font-size: 18px;
+            color: #5a6b7c;
+            margin-bottom: 28px;
+            font-style: normal;
+            letter-spacing: 1px;
+        }
+
+        .cover-page .abstract {
+            max-width: 780px;
+            font-size: 15px;
+            line-height: 2;
+            color: #2c3e50;
+            text-align: justify;
+            font-style: normal;
+            padding: 0 10px;
+        }
+
+        .cover-page .abstract strong {
+            font-weight: 600;
+        }
+
+        .cover-page .hint {
+            margin-top: 32px;
+            font-size: 14px;
+            color: #9aa8b8;
+            font-style: normal;
+            letter-spacing: 1px;
+            animation: pulse-hint 2.2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-hint {
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* ----- 图表内容容器（叠加切换） ----- */
+        .content-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .tab-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            z-index: 1;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            padding: 30px 40px 30px 40px;
+            overflow-y: auto;
+            background: #f5f6f8;
+        }
+
+        .tab-content.active {
+            opacity: 1;
+            z-index: 10;
+            pointer-events: auto;
+        }
+
+        .tab-content h2 {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a2634;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+            font-style: normal;
+        }
+
+        .tab-content h2 small {
+            font-weight: 400;
+            font-size: 16px;
+            color: #7a8a9a;
+            font-style: normal;
+        }
+
+        .tab-content .viz-container {
+            width: 100%;
+            height: calc(100% - 70px);
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            padding: 16px;
+            overflow: hidden;
+        }
+
+        .tab-content .viz-container .tableauPlaceholder {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .tab-content .viz-container .tableauPlaceholder object {
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 500px;
+        }
+
+        /* ============================================================
+                   响应式适配
+                   ============================================================ */
+        @media (max-width: 820px) {
+            .sidebar {
+                width: 170px;
+                min-width: 170px;
+                padding: 24px 0 16px;
+            }
+
+            .sidebar .logo-area {
+                padding: 0 16px 20px;
+            }
+            .sidebar .logo-area h2 {
+                font-size: 15px;
+            }
+
+            .sidebar nav .nav-btn {
+                font-size: 13px;
+                padding: 10px 14px;
+            }
+
+            .cover-page {
+                padding: 40px 30px;
+            }
+            .cover-page h1 {
+                font-size: 28px;
+            }
+            .cover-page .abstract {
+                font-size: 14px;
+            }
+
+            .tab-content {
+                padding: 20px 16px;
+            }
+            .tab-content h2 {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 540px) {
+            .app {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-width: unset;
+                height: auto;
+                max-height: 140px;
+                flex-direction: row;
+                padding: 10px 12px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+            }
+
+            .sidebar .logo-area {
+                display: none;
+            }
+
+            .sidebar nav {
+                flex-direction: row;
+                padding: 0;
+                gap: 4px;
+                flex: 1;
+                align-items: center;
+                flex-wrap: nowrap;
+            }
+
+            .sidebar nav .nav-btn {
+                font-size: 12px;
+                padding: 8px 14px;
+                white-space: nowrap;
+                border-left: none !important;
+                border-bottom: 2px solid transparent;
+            }
+
+            .sidebar nav .nav-btn.active {
+                border-left: none !important;
+                border-bottom-color: #7aabcf;
+            }
+
+            .sidebar .footer-info {
+                display: none;
+            }
+
+            .main {
+                height: calc(100vh - 140px);
+            }
+
+            .cover-page {
+                padding: 30px 20px;
+            }
+            .cover-page h1 {
+                font-size: 22px;
+            }
+            .cover-page .subtitle {
+                font-size: 14px;
+            }
+            .cover-page .abstract {
+                font-size: 13px;
+                line-height: 1.8;
+            }
+
+            .tab-content {
+                padding: 12px 10px;
+            }
+            .tab-content h2 {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+            .tab-content .viz-container {
+                height: calc(100% - 50px);
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app">
+
+        <!-- ============================================================
+        左侧导航栏
+        ============================================================ -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <h2>动画IP热度<br />多维归因研究</h2>
+                <p>1970–2025 · 面板数据</p>
+            </div>
+            <nav>
+                <button class="nav-btn" data-tab="tab1">宏观趋势：年度人气均值与题材构成演变</button>
+                <button class="nav-btn" data-tab="tab2">TOP10题材人气排名的时序波动</button>
+                <button class="nav-btn" data-tab="tab3">制作公司产能与品质特征分析</button>
+                <button class="nav-btn" data-tab="tab4">评分与人气的关联性分析</button>
+                <button class="nav-btn" data-tab="tab5">剧集数对人气的影响效应</button>
+            </nav>
+            <div class="footer-info">
+                课程综合实践 I · 大数据可视化
+            </div>
+        </aside>
+
+        <!-- ============================================================
+        右侧主内容区
+        ============================================================ -->
+        <main class="main">
+
+            <!-- ===== 封面页 ===== -->
+            <section class="cover-page" id="coverPage">
+                <h1>日本动画IP热度的多维归因实证研究</h1>
+                <p class="subtitle">基于 1970–2025 年动画作品面板数据的可视化分析</p>
+                <div class="abstract">
+                    <strong>摘要：</strong>本研究基于1970年至2025年的日本动画作品多维面板数据，从宏观市场周期、题材轮动规律、制片方生产策略、受众评分偏好及内容时长设计五个维度，系统探究了影响动画作品人气（即市场关注热度）的核心因素。实证发现：① 市场整体人气均分呈上升趋势，且TOP10题材在21世纪初变化较快，近些年沉淀稳定；② 制作公司存在“高质低产”的精品工作室与“中质高产”的商业流水线两种典型范式；③ 评分与人气并非简单线性关系，存在明显的“口碑-流量”错位象限；④ 剧集数对人气的提升存在边际递减效应，最佳效益区间集中于7-12集。本研究通过多维度交叉验证，为动画制作委员会的选题决策与资源配置提供了量化的实证参考依据。
+                </div>
+                <div class="hint">← 点击左侧导航栏开始探索</div>
+            </section>
+
+            <!-- ===== 图表内容区 ===== -->
+            <div class="content-wrapper">
+
+                <!-- 1. 宏观趋势：年度人气均值与题材构成演变 -->
+                <section id="tab1" class="tab-content">
+                    <h2>宏观趋势：年度人气均值与题材构成演变</h2>
+                    <div class="viz-container">
+                        <div class='tableauPlaceholder' id='viz1784626440474' style='position:relative; width:100%; height:100%;'>
+                            <noscript>
+                                <a href='#'>
+                                    <img alt=' ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;SR&#47;SRG32HQZY&#47;1_rss.png' style='border: none' />
+                                </a>
+                            </noscript>
+                            <object class='tableauViz' style='display:none; width:100%; height:100%;'>
+                                <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+                                <param name='embed_code_version' value='3' />
+                                <param name='path' value='shared&#47;SRG32HQZY' />
+                                <param name='toolbar' value='yes' />
+                                <param name='static_image' value='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;SR&#47;SRG32HQZY&#47;1.png' />
+                                <param name='animate_transition' value='yes' />
+                                <param name='display_static_image' value='yes' />
+                                <param name='display_spinner' value='yes' />
+                                <param name='display_overlay' value='yes' />
+                                <param name='display_count' value='yes' />
+                                <param name='language' value='zh-CN' />
+                                <param name='filter' value='publish=yes' />
+                                <param name='filter' value='showOnboarding=true' />
+                            </object>
+                        </div>
+                        <script type='text/javascript'>
+                            (function() {
+                                var divElement = document.getElementById('viz1784626440474');
+                                if (!divElement) return;
+                                var vizElement = divElement.getElementsByTagName('object')[0];
+                                if (!vizElement) return;
+                                if (divElement.offsetWidth > 800) {
+                                    vizElement.style.minWidth = '100%';
+                                    vizElement.style.maxWidth = '100%';
+                                    vizElement.style.minHeight = '100%';
+                                    vizElement.style.maxHeight = '100%';
+                                } else if (divElement.offsetWidth > 500) {
+                                    vizElement.style.minWidth = '100%';
+                                    vizElement.style.maxWidth = '100%';
+                                    vizElement.style.minHeight = '100%';
+                                    vizElement.style.maxHeight = '100%';
+                                } else {
+                                    vizElement.style.width = '100%';
+                                    vizElement.style.height = '100%';
+                                }
+                                var scriptElement = document.createElement('script');
+                                scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+                                vizElement.parentNode.insertBefore(scriptElement, vizElement);
+                            })();
+                        </script>
+                    </div>
+                </section>
+
+                <!-- 2. TOP10题材人气排名的时序波动 -->
+                <section id="tab2" class="tab-content">
+                    <h2>TOP10题材人气排名的时序波动</h2>
+                    <div class="viz-container">
+                        <div class='tableauPlaceholder' id='viz1784626471058' style='position:relative; width:100%; height:100%;'>
+                            <noscript>
+                                <a href='#'>
+                                    <img alt=' ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;8K&#47;8KGB9DKWN&#47;1_rss.png' style='border: none' />
+                                </a>
+                            </noscript>
+                            <object class='tableauViz' style='display:none; width:100%; height:100%;'>
+                                <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+                                <param name='embed_code_version' value='3' />
+                                <param name='path' value='shared&#47;8KGB9DKWN' />
+                                <param name='toolbar' value='yes' />
+                                <param name='static_image' value='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;8K&#47;8KGB9DKWN&#47;1.png' />
+                                <param name='animate_transition' value='yes' />
+                                <param name='display_static_image' value='yes' />
+                                <param name='display_spinner' value='yes' />
+                                <param name='display_overlay' value='yes' />
+                                <param name='display_count' value='yes' />
+                                <param name='language' value='zh-CN' />
+                                <param name='filter' value='publish=yes' />
+                                <param name='filter' value='showOnboarding=true' />
+                            </object>
+                        </div>
+                        <script type='text/javascript'>
+                            (function() {
+                                var divElement = document.getElementById('viz1784626471058');
+                                if (!divElement) return;
+                                var vizElement = divElement.getElementsByTagName('object')[0];
+                                if (!vizElement) return;
+                                vizElement.style.width = '100%';
+                                vizElement.style.height = '100%';
+                                var scriptElement = document.createElement('script');
+                                scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+                                vizElement.parentNode.insertBefore(scriptElement, vizElement);
+                            })();
+                        </script>
+                    </div>
+                </section>
+
+                <!-- 3. 制作公司产能与品质特征分析 -->
+                <section id="tab3" class="tab-content">
+                    <h2>制作公司产能与品质特征分析</h2>
+                    <div class="viz-container">
+                        <div class='tableauPlaceholder' id='viz1784643674965' style='position:relative; width:100%; height:100%;'>
+                            <noscript>
+                                <a href='#'>
+                                    <img alt='工作表 3 ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;2_&#47;2_17846252685100&#47;3&#47;1_rss.png' style='border: none' />
+                                </a>
+                            </noscript>
+                            <object class='tableauViz' style='display:none; width:100%; height:100%;'>
+                                <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+                                <param name='embed_code_version' value='3' />
+                                <param name='site_root' value='' />
+                                <param name='name' value='2_17846252685100&#47;3' />
+                                <param name='tabs' value='no' />
+                                <param name='toolbar' value='yes' />
+                                <param name='static_image' value='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;2_&#47;2_17846252685100&#47;3&#47;1.png' />
+                                <param name='animate_transition' value='yes' />
+                                <param name='display_static_image' value='yes' />
+                                <param name='display_spinner' value='yes' />
+                                <param name='display_overlay' value='yes' />
+                                <param name='display_count' value='yes' />
+                                <param name='language' value='zh-CN' />
+                            </object>
+                        </div>
+                        <script type='text/javascript'>
+                            (function() {
+                                var divElement = document.getElementById('viz1784643674965');
+                                if (!divElement) return;
+                                var vizElement = divElement.getElementsByTagName('object')[0];
+                                if (!vizElement) return;
+                                vizElement.style.width = '100%';
+                                vizElement.style.height = '100%';
+                                var scriptElement = document.createElement('script');
+                                scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+                                vizElement.parentNode.insertBefore(scriptElement, vizElement);
+                            })();
+                        </script>
+                    </div>
+                </section>
+
+                <!-- 4. 评分与人气的关联性分析 -->
+                <section id="tab4" class="tab-content">
+                    <h2>评分与人气的关联性分析</h2>
+                    <div class="viz-container">
+                        <div class='tableauPlaceholder' id='viz1784643748645' style='position:relative; width:100%; height:100%;'>
+                            <noscript>
+                                <a href='#'>
+                                    <img alt='工作表 2 ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;2_&#47;2_17846252685100&#47;2&#47;1_rss.png' style='border: none' />
+                                </a>
+                            </noscript>
+                            <object class='tableauViz' style='display:none; width:100%; height:100%;'>
+                                <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+                                <param name='embed_code_version' value='3' />
+                                <param name='site_root' value='' />
+                                <param name='name' value='2_17846252685100&#47;2' />
+                                <param name='tabs' value='no' />
+                                <param name='toolbar' value='yes' />
+                                <param name='static_image' value='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;2_&#47;2_17846252685100&#47;2&#47;1.png' />
+                                <param name='animate_transition' value='yes' />
+                                <param name='display_static_image' value='yes' />
+                                <param name='display_spinner' value='yes' />
+                                <param name='display_overlay' value='yes' />
+                                <param name='display_count' value='yes' />
+                                <param name='language' value='zh-CN' />
+                            </object>
+                        </div>
+                        <script type='text/javascript'>
+                            (function() {
+                                var divElement = document.getElementById('viz1784643748645');
+                                if (!divElement) return;
+                                var vizElement = divElement.getElementsByTagName('object')[0];
+                                if (!vizElement) return;
+                                vizElement.style.width = '100%';
+                                vizElement.style.height = '100%';
+                                var scriptElement = document.createElement('script');
+                                scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+                                vizElement.parentNode.insertBefore(scriptElement, vizElement);
+                            })();
+                        </script>
+                    </div>
+                </section>
+
+                <!-- 5. 剧集数对人气的影响效应 -->
+                <section id="tab5" class="tab-content">
+                    <h2>剧集数对人气的影响效应</h2>
+                    <div class="viz-container">
+                        <div class='tableauPlaceholder' id='viz1784644969000' style='position:relative; width:100%; height:100%;'>
+                            <noscript>
+                                <a href='#'>
+                                    <img alt='5 ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;1_&#47;1_17846240524480&#47;5&#47;1_rss.png' style='border: none' />
+                                </a>
+                            </noscript>
+                            <object class='tableauViz' style='display:none; width:100%; height:100%;'>
+                                <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+                                <param name='embed_code_version' value='3' />
+                                <param name='site_root' value='' />
+                                <param name='name' value='1_17846240524480&#47;5' />
+                                <param name='tabs' value='no' />
+                                <param name='toolbar' value='yes' />
+                                <param name='static_image' value='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;1_&#47;1_17846240524480&#47;5&#47;1.png' />
+                                <param name='animate_transition' value='yes' />
+                                <param name='display_static_image' value='yes' />
+                                <param name='display_spinner' value='yes' />
+                                <param name='display_overlay' value='yes' />
+                                <param name='display_count' value='yes' />
+                                <param name='language' value='zh-CN' />
+                                <param name='filter' value='publish=yes' />
+                            </object>
+                        </div>
+                        <script type='text/javascript'>
+                            (function() {
+                                var divElement = document.getElementById('viz1784644969000');
+                                if (!divElement) return;
+                                var vizElement = divElement.getElementsByTagName('object')[0];
+                                if (!vizElement) return;
+                                if (divElement.offsetWidth > 800) {
+                                    vizElement.style.width = '100%';
+                                    vizElement.style.height = '100%';
+                                } else if (divElement.offsetWidth > 500) {
+                                    vizElement.style.width = '100%';
+                                    vizElement.style.height = '100%';
+                                } else {
+                                    vizElement.style.width = '100%';
+                                    vizElement.style.height = '100%';
+                                }
+                                var scriptElement = document.createElement('script');
+                                scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+                                vizElement.parentNode.insertBefore(scriptElement, vizElement);
+                            })();
+                        </script>
+                    </div>
+                </section>
+
+            </div>
+            <!-- /content-wrapper -->
+
+        </main>
+
+    </div>
+    <!-- /app -->
+
+    <!-- ============================================================
+    交互逻辑：导航切换 + 封面隐藏
+    ============================================================ -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            var navButtons = document.querySelectorAll('.nav-btn');
+            var tabContents = document.querySelectorAll('.tab-content');
+            var coverPage = document.getElementById('coverPage');
+
+            // 默认：封面显示，所有图表隐藏
+            coverPage.classList.remove('hidden');
+
+            navButtons.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+
+                    // 1. 隐藏封面页
+                    coverPage.classList.add('hidden');
+
+                    // 2. 导航按钮高亮切换
+                    navButtons.forEach(function(b) {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+
+                    // 3. 图表内容切换
+                    var targetId = this.getAttribute('data-tab');
+                    tabContents.forEach(function(c) {
+                        c.classList.remove('active');
+                    });
+
+                    var target = document.getElementById(targetId);
+                    if (target) {
+                        target.classList.add('active');
+                    }
+
+                });
+            });
+
+        });
+    </script>
+
+</body>
+</html>
